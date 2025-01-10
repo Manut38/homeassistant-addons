@@ -1,0 +1,4 @@
+# https://developers.home-assistant.io/docs/add-ons/repository#repository-configuration
+name: Manu's Custom Home Assistant add-on repository
+url: 'https://github.com/Manut38/homeassistant-addons'
+maintainer: Manuel Piroch

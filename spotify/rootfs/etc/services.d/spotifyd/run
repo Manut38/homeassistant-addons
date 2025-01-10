@@ -1,0 +1,64 @@
+#!/command/with-contenv bashio
+# ==============================================================================
+# Home Assistant Community Add-on: Spotify Connect
+# Runs librespot
+# ==============================================================================
+declare -a options
+declare bitrate
+declare name
+declare password
+declare username
+declare initial_volume
+declare autoplay
+declare device_type
+
+bashio::log.info 'Starting the Spotify daemon...'
+
+# Bitrate
+options+=(--bitrate $(bashio::config 'bitrate'))
+
+# Initial Volume
+initial_volume=$(bashio::config 'initial_volume')
+if ! [[ "$initial_volume" =~ ^[0-9]+$ ]] || [ "$initial_volume" -lt 0 ] || [ "$initial_volume" -gt 100 ]; then
+    bashio::log.warning "Invalid initial_volume value: $initial_volume. Using default."
+    initial_volume=50
+fi
+options+=(--initial-volume "$initial_volume")
+
+autoplay=$(bashio::config 'autoplay')
+if [[ autoplay = true ]]; then
+  options+=(--autoplay)
+fi
+
+# Device name
+name=$(bashio::config 'name')
+options+=(--name "${name}")
+
+# Device type
+device_type=$(bashio::config 'device_type')
+options+=(--device-type "${device_type}")
+
+# Username / password
+if bashio::config.has_value 'username'; then
+    bashio::config.require.password
+
+    username=$(bashio::config 'username')
+    password=$(bashio::config 'password')
+
+    options+=(--username "${username}")
+    options+=(--password "${password}")
+fi
+
+# Save writes
+options+=(--disable-audio-cache)
+
+# Enable normalization
+options+=(--enable-volume-normalisation)
+
+# Are we running in debug mode?
+if bashio::debug; then
+  options+=(--verbose)
+fi
+
+# Run librespot
+exec librespot "${options[@]}"
